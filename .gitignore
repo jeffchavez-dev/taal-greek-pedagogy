@@ -1,0 +1,4 @@
+# Source documents (not needed for deployment)
+*.docx
+extracted_text.txt
+unpacked/
