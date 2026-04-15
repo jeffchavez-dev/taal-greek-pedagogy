@@ -33,6 +33,45 @@ body{
   line-height:1.6;
 }
 
+/* Hamburger button */
+#hamburger{
+  display:none;
+  background:transparent;border:none;cursor:pointer;
+  padding:6px;border-radius:8px;
+  flex-direction:column;gap:5px;justify-content:center;align-items:center;
+  transition:background .2s;
+}
+#hamburger:hover{background:var(--glass2)}
+#hamburger span{
+  display:block;width:22px;height:2px;
+  background:var(--purple3);border-radius:2px;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+}
+#hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+#hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+#hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* Sidebar overlay for mobile */
+#sidebar-overlay{
+  display:none;position:fixed;inset:0;z-index:10;
+  background:rgba(7,0,26,.6);backdrop-filter:blur(4px);
+}
+
+/* Mobile responsive */
+@media(max-width:640px){
+  #hamburger{display:flex}
+  #sidebar{
+    position:fixed;top:var(--header-h);left:0;bottom:0;z-index:20;
+    transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+    box-shadow:4px 0 32px rgba(124,58,237,.4);
+  }
+  #sidebar.open{transform:translateX(0)}
+  #sidebar-overlay.open{display:block}
+  #main{padding:14px}
+  .tab{padding:7px 12px;font-size:.62rem;letter-spacing:1px}
+  #tabs{gap:2px;flex-wrap:wrap}
+}
+
 /* Animated starfield */
 #stars{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 .star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--dur,3s) infinite alternate}
@@ -272,10 +311,14 @@ header{
 <div id="stars"></div>
 <div id="app">
   <header>
+    <button id="hamburger" aria-label="Toggle sessions" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
+    </button>
     <div class="logo">TAAL</div>
     <div class="header-title">Greek Language &amp; Pedagogy 1 · 2026</div>
     <div class="header-right">Instructor: Μᾶρκος Zutso</div>
   </header>
+  <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
   <div id="body">
     <nav id="sidebar">
       <div class="sidebar-header">Sessions</div>
@@ -1354,6 +1397,27 @@ let fcFlipped = false;
 let fcCards = [];
 
 // ─── STARS ────────────────────────────────────────────────────────────────────
+function toggleSidebar(){
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  const hb = document.getElementById('hamburger');
+  const open = sb.classList.toggle('open');
+  ov.classList.toggle('open', open);
+  hb.classList.toggle('open', open);
+}
+
+// Close sidebar when a session is selected on mobile
+function closeSidebarOnMobile(){
+  if(window.innerWidth <= 640){
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('sidebar-overlay');
+    const hb = document.getElementById('hamburger');
+    sb.classList.remove('open');
+    ov.classList.remove('open');
+    hb.classList.remove('open');
+  }
+}
+
 function initStars(){
   const c=document.getElementById('stars');
   for(let i=0;i<120;i++){
@@ -1382,6 +1446,7 @@ function selectSession(i){
   document.querySelectorAll('.session-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
   fcIndex=0;fcFlipped=false;
   renderAll();
+  closeSidebarOnMobile();
 }
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
