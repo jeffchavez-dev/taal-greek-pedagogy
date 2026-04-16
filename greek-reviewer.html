@@ -306,6 +306,29 @@ header{
   transition:all .2s;
 }
 .fc-shuffle:hover{border-color:var(--purple3);color:var(--text2)}
+
+/* Flashcard image (front face) */
+.fc-img{
+  width:100%;max-height:140px;object-fit:cover;
+  border-radius:10px;border:1px solid var(--border);
+}
+
+/* Vocab card with image */
+.vocab-card-img{
+  padding:0;overflow:hidden;
+  grid-column: span 1;
+}
+.vocab-img{
+  width:100%;height:160px;object-fit:cover;display:block;
+  border-radius:10px 10px 0 0;
+}
+.vocab-card-img .vocab-gk,
+.vocab-card-img .vocab-en,
+.vocab-card-img .vocab-tag{
+  padding-left:14px;padding-right:14px;
+}
+.vocab-card-img .vocab-gk{padding-top:10px;}
+.vocab-card-img .vocab-tag{padding-bottom:10px;}
 </style>
 </head>
 <body>
@@ -328,15 +351,15 @@ header{
     <div id="main">
       <div id="session-heading"></div>
       <div id="tabs">
-        <button class="tab active" data-tab="story">📖 Story</button>
+        <button class="tab active" data-tab="flash">🃏 Flashcards</button>
+        <button class="tab" data-tab="story">📖 Story</button>
         <button class="tab" data-tab="grammar">⚡ Grammar</button>
         <button class="tab" data-tab="vocab">📚 Vocabulary</button>
-        <button class="tab" data-tab="flash">🃏 Flashcards</button>
       </div>
-      <div id="story-panel" class="panel active"></div>
+      <div id="flash-panel" class="panel active"></div>
+      <div id="story-panel" class="panel"></div>
       <div id="grammar-panel" class="panel"></div>
       <div id="vocab-panel" class="panel"></div>
-      <div id="flash-panel" class="panel" id="flashcard-panel"></div>
     </div>
   </div>
 </div>
@@ -1646,33 +1669,35 @@ const SESSIONS = [
     ]}
   ],
   vocab:[
-    {gk:"ἐργαζόμενος",en:"working, the one working",tag:"middle participle"},
+    {gk:"ἀροτρεύων",en:"plowing (the one plowing)",tag:"participle",img:"img/3.1.a.jpeg"},
+    {gk:"ἱστάμενος",en:"stopping, standing still",tag:"middle participle",img:"img/3.1.b.jpeg"},
+    {gk:"ἐμποδίζων",en:"blocking, obstructing",tag:"participle",img:"img/3.1.e.jpeg"},
+    {gk:"αἴρων τὸν λίθον",en:"lifting the stone",tag:"participle",img:"img/3.1.f.jpeg"},
+    {gk:"πταίων",en:"stumbling, by stumbling",tag:"participle",img:"img/3.1.h.jpeg"},
+    {gk:"φέρων τὸ δεῖπνον",en:"carrying the meal",tag:"participle",img:"img/3.2.b.jpeg"},
+    {gk:"καλῶν",en:"calling out (the one calling)",tag:"participle",img:"img/3.2.c.jpeg"},
+    {gk:"δειπνῶν",en:"dining, eating the meal",tag:"participle",img:"img/3.2.f.jpeg"},
+    {gk:"βαδίζων οἴκαδε",en:"walking homeward",tag:"participle",img:"img/3.2.k.jpeg"},
+    {gk:"δρέπων",en:"picking (olives/fruit)",tag:"participle",img:"img/3.3.a.jpeg"},
+    {gk:"σπείρων",en:"sowing (seed)",tag:"participle",img:"img/3.3.e.jpeg"},
+    {gk:"φυτεύων",en:"planting (the vine)",tag:"participle",img:"img/3.3.f.jpeg"},
+    {gk:"ἀναβαίνων",en:"climbing up (the tree)",tag:"participle",img:"img/3.3.l.jpeg"},
+    {gk:"ὀλισθαίνων",en:"slipping, losing footing",tag:"participle",img:"img/3.3.q.jpeg"},
+    {gk:"τρέχων",en:"running (masculine)",tag:"participle",img:"img/3.3.t.jpeg"},
+    {gk:"τρέχουσα",en:"running (feminine)",tag:"participle",img:"img/3.3.u.jpeg"},
+    {gk:"δειπνῶν ἐν οἴκῳ",en:"dining at home (with family)",tag:"participle",img:"img/3.3.z.jpeg"},
+    {gk:"ἐργαζόμενος",en:"working (middle participle)",tag:"middle participle"},
     {gk:"ὀργιζόμενος",en:"becoming angry",tag:"middle participle"},
-    {gk:"βουλόμενος",en:"wanting, the one who wants",tag:"middle participle"},
     {gk:"ἐρχόμενος",en:"coming, the one coming",tag:"middle participle"},
-    {gk:"καθήμενος",en:"sitting, the one sitting",tag:"middle participle"},
-    {gk:"λογιζόμενος",en:"thinking, reasoning",tag:"middle participle"},
-    {gk:"δεχόμενος",en:"receiving",tag:"middle participle"},
-    {gk:"ἀρνούμενος",en:"refusing, denying",tag:"middle participle"},
-    {gk:"ἐξερχόμενος",en:"going out",tag:"middle participle"},
-    {gk:"παραγινόμενος",en:"arriving",tag:"middle participle"},
-    {gk:"ὀνόματι",en:"by name (dative of name)",tag:"phrase"},
-    {gk:"ἑαυτοῦ",en:"of himself (reflexive genitive)",tag:"pronoun"},
     {gk:"τὸ ἐρώτημα",en:"the question",tag:"noun"},
     {gk:"ἡ ἀπόκρισις",en:"the answer",tag:"noun"},
-    {gk:"ἐρωτῶ",en:"I ask, question",tag:"verb"},
-    {gk:"πιστεύω",en:"I trust, believe (+ dative)",tag:"verb"},
-    {gk:"δίδωμι",en:"I give",tag:"verb"},
-    {gk:"παρούσας",en:"being present (acc. pl. f.)",tag:"participle"},
-    {gk:"ἀρνοῦ",en:"do not refuse! (middle imperative)",tag:"phrase"},
-    {gk:"ἔχω = ἔστιν μοι",en:"I have = it is to/for me",tag:"grammar"},
   ]
 }
 ];
 
 // ─── APP STATE ────────────────────────────────────────────────────────────────
 let currentSession = 0;
-let currentTab = 'story';
+let currentTab = 'flash';
 let fcIndex = 0;
 let fcFlipped = false;
 let fcCards = [];
@@ -1807,7 +1832,8 @@ function renderVocabGrid(vocab,q){
     v.gk.toLowerCase().includes(q)||v.en.toLowerCase().includes(q)
   );
   grid.innerHTML=filtered.map(v=>`
-    <div class="vocab-card">
+    <div class="vocab-card${v.img?' vocab-card-img':''}">
+      ${v.img?`<img src="${v.img}" class="vocab-img" alt="${v.en}" loading="lazy">`:''}
       <div class="vocab-gk">${v.gk}</div>
       <div class="vocab-en">${v.en}</div>
       <div class="vocab-tag">${v.tag}</div>
@@ -1827,13 +1853,14 @@ function renderFlash(s){
       <div class="fc-scene" onclick="flipCard()">
         <div class="fc-card" id="fc-card">
           <div class="fc-face fc-front">
-            <div class="fc-label">Greek</div>
-            <div class="fc-greek" id="fc-greek"></div>
+            <div class="fc-label" id="fc-front-label">Image</div>
+            <img id="fc-img" class="fc-img" src="" alt="" style="display:none">
+            <div class="fc-greek" id="fc-greek" style="display:none"></div>
             <div class="fc-tap">tap to reveal</div>
           </div>
           <div class="fc-face fc-back">
-            <div class="fc-label">English</div>
-            <div class="fc-english" id="fc-english"></div>
+            <div class="fc-label">Greek</div>
+            <div class="fc-greek" id="fc-back-greek"></div>
             <div class="fc-hint" id="fc-hint"></div>
           </div>
         </div>
@@ -1851,9 +1878,22 @@ function renderFlash(s){
 function updateCard(){
   if(!fcCards.length)return;
   const v=fcCards[fcIndex];
-  document.getElementById('fc-greek').textContent=v.gk;
-  document.getElementById('fc-english').textContent=v.en;
-  document.getElementById('fc-hint').textContent=v.tag;
+  const img=document.getElementById('fc-img');
+  const gkFront=document.getElementById('fc-greek');
+  const label=document.getElementById('fc-front-label');
+  // Front: image if available, otherwise Greek word
+  if(v.img){
+    img.src=v.img; img.alt=v.en; img.style.display='block';
+    gkFront.style.display='none';
+    label.textContent='What is this?';
+  } else {
+    img.style.display='none';
+    gkFront.textContent=v.gk; gkFront.style.display='block';
+    label.textContent='Greek';
+  }
+  // Back: Greek only
+  document.getElementById('fc-back-greek').textContent=v.gk;
+  document.getElementById('fc-hint').textContent=v.en;
   document.getElementById('fc-counter').textContent=`${fcIndex+1} / ${fcCards.length}`;
   document.getElementById('fc-bar').style.width=`${((fcIndex+1)/fcCards.length)*100}%`;
   const card=document.getElementById('fc-card');
