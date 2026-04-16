@@ -34,6 +34,77 @@ body{
   line-height:1.6;
 }
 
+/* Master Vocabulary Modal */
+#master-vocab-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 14px;background:var(--glass);border:1px solid var(--border);
+  color:var(--text2);cursor:pointer;border-radius:20px;
+  font-size:.72rem;font-family:'Orbitron',sans-serif;letter-spacing:1px;
+  transition:all .2s;white-space:nowrap;flex-shrink:0;
+}
+#master-vocab-btn:hover{background:rgba(124,58,237,.35);border-color:var(--neon);color:#fff;box-shadow:0 0 14px rgba(191,95,255,.3)}
+
+#mv-modal{
+  display:none;position:fixed;inset:0;z-index:100;
+  background:rgba(7,0,26,.92);backdrop-filter:blur(12px);
+  flex-direction:column;
+}
+#mv-modal.open{display:flex}
+#mv-inner{
+  display:flex;flex-direction:column;height:100%;max-width:900px;
+  margin:0 auto;width:100%;padding:20px;gap:14px;
+}
+#mv-header{
+  display:flex;align-items:center;gap:14px;flex-shrink:0;
+}
+#mv-title{
+  font-family:'Orbitron',sans-serif;font-size:1rem;
+  background:linear-gradient(135deg,#c084fc,#e879f9);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:2px;flex:1;
+}
+#mv-count{font-size:.8rem;color:var(--text3)}
+#mv-close{
+  background:transparent;border:1px solid var(--border);
+  color:var(--text3);cursor:pointer;border-radius:20px;
+  padding:6px 14px;font-size:.8rem;transition:all .2s;
+}
+#mv-close:hover{border-color:var(--neon);color:#fff}
+#mv-search{
+  width:100%;padding:10px 16px;
+  background:var(--glass2);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:.9rem;
+  font-family:'Inter',sans-serif;outline:none;flex-shrink:0;
+  transition:border-color .2s;
+}
+#mv-search:focus{border-color:var(--neon);box-shadow:0 0 16px rgba(191,95,255,.2)}
+#mv-search::placeholder{color:var(--text3)}
+#mv-table-wrap{flex:1;overflow-y:auto;}
+#mv-table-wrap::-webkit-scrollbar{width:4px}
+#mv-table-wrap::-webkit-scrollbar-thumb{background:var(--purple);border-radius:4px}
+#mv-table{width:100%;border-collapse:collapse;font-size:.85rem}
+#mv-table th{
+  position:sticky;top:0;
+  background:rgba(13,0,48,.95);backdrop-filter:blur(8px);
+  color:var(--purple3);padding:10px 14px;text-align:left;
+  font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:1px;
+  border-bottom:1px solid var(--border);
+}
+#mv-table td{
+  padding:8px 14px;border-bottom:1px solid rgba(180,100,255,.08);
+  color:var(--text2);vertical-align:top;
+}
+#mv-table tr:hover td{background:rgba(180,100,255,.06)}
+.mv-gk{color:#e2d4ff;font-size:.95rem;font-weight:500}
+.mv-session{
+  font-family:'Orbitron',sans-serif;font-size:.65rem;
+  color:var(--purple3);white-space:nowrap;
+}
+@media(max-width:640px){
+  #master-vocab-btn .mv-label{display:none}
+  #mv-inner{padding:14px}
+}
+
 /* Hamburger button */
 #hamburger{
   display:none;
@@ -257,11 +328,12 @@ header{
 .fc-wrap{display:flex;flex-direction:column;align-items:center;gap:20px;width:100%;max-width:520px;margin:auto}
 .fc-counter{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--text3);letter-spacing:2px}
 .fc-scene{
-  width:100%;height:220px;perspective:1000px;cursor:pointer;
+  width:100%;height:300px;perspective:1000px;cursor:pointer;
 }
 .fc-card{
   width:100%;height:100%;position:relative;
   transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);
+  cursor:pointer;
 }
 .fc-card.flipped{transform:rotateY(180deg)}
 .fc-face{
@@ -309,8 +381,9 @@ header{
 
 /* Flashcard image (front face) */
 .fc-img{
-  width:100%;max-height:140px;object-fit:cover;
+  width:100%;max-height:200px;object-fit:contain;
   border-radius:10px;border:1px solid var(--border);
+  background:rgba(0,0,0,0.3);
 }
 
 /* Vocab card with image */
@@ -341,8 +414,30 @@ header{
     <div class="logo">TAAL</div>
     <div class="header-title">Greek Language &amp; Pedagogy 1 · 2026</div>
     <div class="header-right">Instructor: Μᾶρκος Zutso</div>
+    <button id="master-vocab-btn" onclick="openMasterVocab()">📚 <span class="mv-label">All Vocab</span></button>
   </header>
   <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <div id="mv-modal">
+    <div id="mv-inner">
+      <div id="mv-header">
+        <div id="mv-title">MASTER VOCABULARY</div>
+        <div id="mv-count"></div>
+        <input id="mv-search" type="text" placeholder="Search Greek or English…" oninput="filterMV()">
+        <button id="mv-close" onclick="closeMasterVocab()">✕ Close</button>
+      </div>
+      <div id="mv-table-wrap">
+        <table id="mv-table">
+          <thead><tr>
+            <th>Greek</th>
+            <th>English</th>
+            <th>Type</th>
+            <th>First in</th>
+          </tr></thead>
+          <tbody id="mv-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
   <div id="body">
     <nav id="sidebar">
       <div class="sidebar-header">Sessions</div>
@@ -1601,13 +1696,15 @@ const SESSIONS = [
     ]}
   ],
   vocab:[
+    {gk:"παραγίγνεται",en:"he arrives, comes to",tag:"deponent",img:"img/3.2.b.jpeg"},
+    {gk:"κάθηται",en:"he is sitting",tag:"deponent",img:"img/3.2.f.jpeg"},
+    {gk:"δύναται",en:"he is able, can",tag:"deponent",img:"img/3.1.f.jpeg"},
+    {gk:"ὀργίζεται",en:"he is angry",tag:"deponent",img:"img/3.1.h.jpeg"},
+    {gk:"δειπνέω",en:"I eat dinner/lunch",tag:"verb",img:"img/3.3.z.jpeg"},
+    {gk:"υἱός",en:"son",tag:"noun",img:"img/3.2.c.jpeg"},
     {gk:"ἀρνεῖται",en:"he refuses, denies",tag:"deponent"},
     {gk:"ἀποκρίνεται",en:"he answers",tag:"deponent"},
-    {gk:"παραγίγνεται",en:"he arrives",tag:"deponent"},
     {gk:"λογίζεται",en:"he thinks, reasons",tag:"deponent"},
-    {gk:"ὀργίζεται",en:"he is angry",tag:"deponent"},
-    {gk:"κάθηται",en:"he is sitting",tag:"deponent"},
-    {gk:"δύναται",en:"he is able, can",tag:"deponent"},
     {gk:"κεῖται",en:"he lies (down)",tag:"deponent"},
     {gk:"ῥάβδος",en:"stick, staff, rod",tag:"noun"},
     {gk:"καιρός",en:"right time, opportunity",tag:"noun"},
@@ -1615,13 +1712,11 @@ const SESSIONS = [
     {gk:"ἀγών",en:"contest, competition",tag:"noun"},
     {gk:"ἄγγελος",en:"messenger",tag:"noun"},
     {gk:"ἀγγελία",en:"message, news",tag:"noun"},
-    {gk:"υἱός",en:"son",tag:"noun"},
     {gk:"κατάρατε",en:"O cursed one! (vocative)",tag:"phrase"},
     {gk:"ἀνδρεῖος",en:"courageous, brave",tag:"adj"},
     {gk:"αὖθις",en:"again",tag:"adverb"},
     {gk:"θεωρέω",en:"I watch, observe",tag:"verb"},
     {gk:"γεμίζω",en:"I fill",tag:"verb"},
-    {gk:"δειπνέω",en:"I eat dinner/lunch",tag:"verb"},
     {gk:"πάλιν",en:"again, back",tag:"adverb"},
     {gk:"περί",en:"about, concerning (+ gen.)",tag:"prep"},
     {gk:"ἆρα",en:"introduces a question (like 'do you...?')",tag:"particle"},
@@ -1703,6 +1798,55 @@ let fcFlipped = false;
 let fcCards = [];
 
 // ─── STARS ────────────────────────────────────────────────────────────────────
+// ─── MASTER VOCABULARY ────────────────────────────────────────────────────────
+let mvAllWords = [];
+
+function buildMasterVocab(){
+  const seen = new Map();
+  SESSIONS.forEach(s=>{
+    s.vocab.forEach(v=>{
+      const key = v.gk.trim().toLowerCase();
+      if(!seen.has(key)){
+        seen.set(key,{gk:v.gk, en:v.en, tag:v.tag, session:s.id, title:s.title});
+      }
+    });
+  });
+  mvAllWords = Array.from(seen.values()).sort((a,b)=>a.gk.localeCompare(b.gk,'el'));
+}
+
+function openMasterVocab(){
+  if(!mvAllWords.length) buildMasterVocab();
+  document.getElementById('mv-search').value='';
+  filterMV();
+  document.getElementById('mv-modal').classList.add('open');
+  document.getElementById('mv-search').focus();
+}
+
+function closeMasterVocab(){
+  document.getElementById('mv-modal').classList.remove('open');
+}
+
+function filterMV(){
+  const q=document.getElementById('mv-search').value.toLowerCase();
+  const filtered=mvAllWords.filter(w=>
+    w.gk.toLowerCase().includes(q)||w.en.toLowerCase().includes(q)||w.tag.toLowerCase().includes(q)
+  );
+  document.getElementById('mv-count').textContent=`${filtered.length} words`;
+  document.getElementById('mv-body').innerHTML=filtered.map(w=>`
+    <tr>
+      <td class="mv-gk">${w.gk}</td>
+      <td>${w.en}</td>
+      <td style="color:var(--text3);font-size:.8rem;font-style:italic">${w.tag}</td>
+      <td class="mv-session">S${w.session}<br><span style="color:var(--text3);font-family:'Inter',sans-serif;font-size:.7rem;font-style:italic">${w.title}</span></td>
+    </tr>
+  `).join('');
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeMasterVocab();
+});
+
 function toggleSidebar(){
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('sidebar-overlay');
