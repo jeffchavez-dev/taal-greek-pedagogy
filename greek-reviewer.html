@@ -94,12 +94,18 @@ body{
   padding:8px 14px;border-bottom:1px solid rgba(180,100,255,.08);
   color:var(--text2);vertical-align:top;
 }
-#mv-table tr:hover td{background:rgba(180,100,255,.06)}
+#mv-table tr.mv-row{cursor:pointer}
+#mv-table tr.mv-row:hover td{background:rgba(180,100,255,.12)}
 .mv-gk{color:#e2d4ff;font-size:.95rem;font-weight:500}
 .mv-session{
   font-family:'Orbitron',sans-serif;font-size:.65rem;
   color:var(--purple3);white-space:nowrap;
 }
+.mv-goto{
+  display:inline-flex;align-items:center;gap:4px;
+  color:var(--purple3);transition:color .15s;
+}
+tr.mv-row:hover .mv-goto{color:var(--neon);text-decoration:underline;text-underline-offset:3px;}
 @media(max-width:640px){
   #master-vocab-btn .mv-label{display:none}
   #mv-inner{padding:14px}
@@ -402,10 +408,141 @@ header{
 }
 .vocab-card-img .vocab-gk{padding-top:10px;}
 .vocab-card-img .vocab-tag{padding-bottom:10px;}
+
+/* ─── LANDING PAGE ──────────────────────────────────────────────────────────── */
+#landing{
+  position:fixed;inset:0;z-index:200;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:var(--bg);padding:40px 20px;text-align:center;
+  transition:opacity .75s ease,transform .75s ease;
+}
+#landing.hidden{opacity:0;transform:scale(1.04);pointer-events:none}
+
+/* Nebula rings behind logo */
+.land-glow-ring{
+  position:absolute;border-radius:50%;pointer-events:none;
+  animation:ringPulse 4s ease-in-out infinite alternate;
+}
+.land-glow-ring:nth-child(1){width:420px;height:420px;
+  background:radial-gradient(circle,rgba(124,58,237,.18),transparent 70%);
+  animation-delay:0s}
+.land-glow-ring:nth-child(2){width:640px;height:640px;
+  background:radial-gradient(circle,rgba(232,121,249,.1),transparent 70%);
+  animation-delay:1.5s}
+@keyframes ringPulse{from{transform:scale(.95)}to{transform:scale(1.05)}}
+
+.land-omega{
+  font-size:clamp(1.4rem,4vw,2rem);
+  color:rgba(180,100,255,.35);letter-spacing:.6em;
+  margin-bottom:20px;position:relative;z-index:1;
+}
+.land-logo{
+  font-family:'Orbitron',sans-serif;font-weight:900;
+  font-size:clamp(3.5rem,14vw,8rem);letter-spacing:.12em;
+  background:linear-gradient(135deg,#c084fc 0%,#e879f9 50%,#818cf8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1;position:relative;z-index:1;
+  animation:landGlow 3s ease-in-out infinite alternate;
+}
+@keyframes landGlow{
+  from{filter:drop-shadow(0 0 18px rgba(191,95,255,.4))}
+  to  {filter:drop-shadow(0 0 55px rgba(232,121,249,.85))}
+}
+.land-academy{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(.45rem,1.8vw,.72rem);
+  letter-spacing:.3em;color:var(--text3);
+  margin-top:10px;text-transform:uppercase;position:relative;z-index:1;
+}
+.land-greek{
+  font-size:clamp(1.1rem,3vw,1.55rem);color:var(--text2);
+  margin:28px 0 6px;letter-spacing:.06em;position:relative;z-index:1;
+}
+.land-year{
+  font-size:clamp(.7rem,2vw,.85rem);color:var(--text3);
+  letter-spacing:.12em;position:relative;z-index:1;
+}
+.land-divider{
+  width:220px;height:1px;margin:32px auto;
+  background:linear-gradient(to right,transparent,var(--border),transparent);
+  position:relative;z-index:1;
+}
+.land-stats{
+  display:flex;gap:clamp(24px,6vw,56px);justify-content:center;
+  margin-bottom:40px;flex-wrap:wrap;position:relative;z-index:1;
+}
+.land-stat{display:flex;flex-direction:column;align-items:center;gap:4px}
+.land-stat .s-num{
+  font-family:'Orbitron',sans-serif;font-size:clamp(1.6rem,5vw,2.6rem);font-weight:700;
+  background:linear-gradient(135deg,#c084fc,#e879f9);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1;
+}
+.land-stat .s-lbl{
+  font-size:.65rem;color:var(--text3);
+  letter-spacing:.18em;text-transform:uppercase;
+}
+.land-enter{
+  position:relative;z-index:1;
+  padding:14px 44px;
+  background:linear-gradient(135deg,var(--purple),var(--purple2));
+  border:1px solid rgba(196,132,252,.4);border-radius:50px;
+  color:#fff;font-family:'Orbitron',sans-serif;
+  font-size:clamp(.75rem,.9vw+.5rem,.9rem);
+  letter-spacing:.18em;cursor:pointer;text-transform:uppercase;
+  box-shadow:0 0 30px rgba(124,58,237,.5),inset 0 1px 0 rgba(255,255,255,.1);
+  transition:all .25s;
+}
+.land-enter:hover{
+  transform:translateY(-3px);
+  box-shadow:0 0 56px rgba(168,85,247,.75),inset 0 1px 0 rgba(255,255,255,.15);
+  background:linear-gradient(135deg,var(--purple2),var(--neon2));
+}
+.land-enter:active{transform:translateY(-1px)}
+.land-instructor{
+  margin-top:20px;font-size:.72rem;color:var(--text3);
+  letter-spacing:.06em;position:relative;z-index:1;
+}
+@media(max-width:480px){
+  .land-omega{display:none}
+  .land-divider{margin:20px auto}
+  .land-stats{gap:24px;margin-bottom:28px}
+}
 </style>
 </head>
 <body>
 <div id="stars"></div>
+
+<!-- ═══ LANDING PAGE ════════════════════════════════════════════════════════ -->
+<div id="landing">
+  <div class="land-glow-ring"></div>
+  <div class="land-glow-ring"></div>
+  <div class="land-omega">Ω · Ω · Ω</div>
+  <div class="land-logo">TAAL</div>
+  <div class="land-academy">Tyndale Academy of Ancient Languages</div>
+  <div class="land-greek">Ἡ τῶν Ἀθηναίων Γλῶσσα</div>
+  <div class="land-year">Greek Language &amp; Pedagogy 1 · 2026</div>
+  <div class="land-divider"></div>
+  <div class="land-stats">
+    <div class="land-stat">
+      <span class="s-num" id="land-sessions">—</span>
+      <span class="s-lbl">Sessions</span>
+    </div>
+    <div class="land-stat">
+      <span class="s-num" id="land-vocab">—</span>
+      <span class="s-lbl">Vocabulary</span>
+    </div>
+    <div class="land-stat">
+      <span class="s-num">∞</span>
+      <span class="s-lbl">Greek</span>
+    </div>
+  </div>
+  <button class="land-enter" onclick="enterApp()">Εἴσελθε &nbsp;→&nbsp; Enter</button>
+  <div class="land-instructor">Instructor: Μᾶρκος Zutso</div>
+</div>
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
 <div id="app">
   <header>
     <button id="hamburger" aria-label="Toggle sessions" onclick="toggleSidebar()">
@@ -1942,11 +2079,14 @@ function filterMV(){
   );
   document.getElementById('mv-count').textContent=`${filtered.length} words`;
   document.getElementById('mv-body').innerHTML=filtered.map(w=>`
-    <tr>
+    <tr class="mv-row" onclick="goToSessionVocab(${w.session})" title="Jump to Session ${w.session} · Vocabulary tab">
       <td class="mv-gk">${w.gk}</td>
       <td>${w.en}</td>
       <td style="color:var(--text3);font-size:.8rem;font-style:italic">${w.tag}</td>
-      <td class="mv-session">S${w.session}<br><span style="color:var(--text3);font-family:'Inter',sans-serif;font-size:.7rem;font-style:italic">${w.title}</span></td>
+      <td class="mv-session">
+        <span class="mv-goto">S${w.session} ↗</span><br>
+        <span style="color:var(--text3);font-family:'Inter',sans-serif;font-size:.7rem;font-style:italic">${w.title}</span>
+      </td>
     </tr>
   `).join('');
 }
@@ -2182,7 +2322,39 @@ document.addEventListener('keydown',e=>{
   }
 });
 
+// ─── LANDING ──────────────────────────────────────────────────────────────────
+function enterApp(){
+  const el=document.getElementById('landing');
+  el.classList.add('hidden');
+  setTimeout(()=>{el.style.display='none';},780);
+}
+
+// ─── TAB SWITCH (programmatic) ────────────────────────────────────────────────
+function switchTab(name){
+  currentTab=name;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(name+'-panel').classList.add('active');
+}
+
+// ─── VOCAB DEEP LINK FROM MASTER MODAL ───────────────────────────────────────
+function goToSessionVocab(sessionId){
+  closeMasterVocab();
+  const idx=SESSIONS.findIndex(s=>s.id===sessionId);
+  if(idx<0) return;
+  selectSession(idx);
+  switchTab('vocab');
+  // Scroll sidebar item into view
+  const btns=document.querySelectorAll('.session-btn');
+  if(btns[idx]) btns[idx].scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
+// Populate landing stats dynamically
+document.getElementById('land-sessions').textContent=SESSIONS.length;
+const _totalVocab=SESSIONS.reduce((n,s)=>n+s.vocab.length,0);
+document.getElementById('land-vocab').textContent=_totalVocab+'+';
+
 initStars();
 buildSidebar();
 initTabs();
