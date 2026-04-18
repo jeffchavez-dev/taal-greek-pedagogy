@@ -308,8 +308,9 @@ header{
 .paradigm td.gk{color:var(--purple3);font-size:.95rem}
 
 /* Vocabulary panel */
+.vocab-toolbar{display:flex;gap:8px;align-items:center;flex-shrink:0}
 #vocab-search{
-  width:100%;padding:10px 16px;
+  flex:1;padding:10px 16px;
   background:var(--glass2);border:1px solid var(--border);
   border-radius:8px;color:var(--text);font-size:.9rem;
   font-family:'Inter',sans-serif;outline:none;
@@ -317,7 +318,35 @@ header{
 }
 #vocab-search:focus{border-color:var(--neon);box-shadow:0 0 16px rgba(191,95,255,.2)}
 #vocab-search::placeholder{color:var(--text3)}
+#vocab-fs-btn{
+  flex-shrink:0;display:flex;align-items:center;gap:5px;
+  padding:9px 14px;background:var(--glass);border:1px solid var(--border);
+  color:var(--text3);cursor:pointer;border-radius:8px;
+  font-size:.75rem;font-family:'Orbitron',sans-serif;letter-spacing:.05em;
+  white-space:nowrap;transition:all .2s;
+}
+#vocab-fs-btn:hover{background:rgba(124,58,237,.35);border-color:var(--neon);color:#fff;box-shadow:0 0 14px rgba(191,95,255,.3)}
+#vocab-fs-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;flex-shrink:0}
+
 .vocab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+
+/* ── Vocab fullscreen overlay ── */
+#vocab-panel.vocab-fs{
+  position:fixed;inset:0;z-index:150;
+  background:var(--bg);
+  display:flex!important;flex-direction:column;gap:14px;
+  padding:20px 24px;overflow-y:auto;
+}
+#vocab-panel.vocab-fs .vocab-toolbar{padding-top:4px}
+#vocab-panel.vocab-fs .vocab-grid{
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:12px;flex:1;
+}
+#vocab-panel.vocab-fs .vocab-img{height:180px}
+@media(max-width:640px){
+  #vocab-fs-btn .fs-label{display:none}
+  #vocab-panel.vocab-fs{padding:14px}
+}
 .vocab-card{
   background:var(--glass2);border:1px solid var(--border);
   border-radius:10px;padding:12px 16px;
@@ -2091,9 +2120,19 @@ function filterMV(){
   `).join('');
 }
 
-// Close modal on Escape key
+// Escape: close master vocab modal OR exit vocab fullscreen
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape') closeMasterVocab();
+  if(e.key==='Escape'){
+    if(document.getElementById('mv-modal').classList.contains('open')){
+      closeMasterVocab();
+    } else {
+      const vp=document.getElementById('vocab-panel');
+      if(vp.classList.contains('vocab-fs')){
+        vp.classList.remove('vocab-fs');
+        updateVocabFsBtn();
+      }
+    }
+  }
 });
 
 function toggleSidebar(){
@@ -2206,10 +2245,22 @@ function renderGrammar(s){
 // VOCAB
 function renderVocab(s){
   const p=document.getElementById('vocab-panel');
+  // preserve fullscreen state across re-renders
+  const wasFS=p.classList.contains('vocab-fs');
   p.innerHTML=`
-    <input id="vocab-search" type="text" placeholder="Search vocabulary…" oninput="filterVocab()" />
+    <div class="vocab-toolbar">
+      <input id="vocab-search" type="text" placeholder="Search vocabulary…" oninput="filterVocab()" />
+      <button id="vocab-fs-btn" onclick="toggleVocabFS()" title="Toggle fullscreen vocabulary view">
+        <svg id="vocab-fs-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+        </svg>
+        <span class="fs-label">Fullscreen</span>
+      </button>
+    </div>
     <div class="vocab-grid" id="vocab-grid"></div>
   `;
+  if(wasFS) p.classList.add('vocab-fs');
+  updateVocabFsBtn();
   renderVocabGrid(s.vocab,'');
 }
 
@@ -2321,6 +2372,37 @@ document.addEventListener('keydown',e=>{
     if(e.key===' '){e.preventDefault();flipCard();}
   }
 });
+
+// ─── VOCAB FULLSCREEN ─────────────────────────────────────────────────────────
+function toggleVocabFS(){
+  const panel=document.getElementById('vocab-panel');
+  const isFS=panel.classList.toggle('vocab-fs');
+  updateVocabFsBtn();
+  if(isFS){
+    // When entering fullscreen, restore scroll to top
+    panel.scrollTop=0;
+    document.getElementById('vocab-search')?.focus();
+  }
+}
+
+function updateVocabFsBtn(){
+  const panel=document.getElementById('vocab-panel');
+  const btn=document.getElementById('vocab-fs-btn');
+  const icon=document.getElementById('vocab-fs-icon');
+  const lbl=btn?.querySelector('.fs-label');
+  if(!btn) return;
+  const isFS=panel.classList.contains('vocab-fs');
+  // Swap icon: expand vs compress
+  if(isFS){
+    icon.innerHTML='<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>';
+    if(lbl) lbl.textContent='Exit';
+    btn.title='Exit fullscreen';
+  } else {
+    icon.innerHTML='<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>';
+    if(lbl) lbl.textContent='Fullscreen';
+    btn.title='Toggle fullscreen vocabulary view';
+  }
+}
 
 // ─── LANDING ──────────────────────────────────────────────────────────────────
 function enterApp(){
