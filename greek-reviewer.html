@@ -407,12 +407,67 @@ header{
   border-radius:2px;overflow:hidden;
 }
 .fc-progress-bar{height:100%;background:linear-gradient(90deg,var(--purple),var(--neon2));border-radius:2px;transition:width .3s}
+.fc-actions{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
 .fc-shuffle{
   padding:6px 14px;background:transparent;border:1px solid rgba(180,100,255,.3);
   color:var(--text3);cursor:pointer;border-radius:20px;font-size:.72rem;
   transition:all .2s;
 }
 .fc-shuffle:hover{border-color:var(--purple3);color:var(--text2)}
+.fc-fs-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:6px 14px;background:transparent;border:1px solid rgba(180,100,255,.3);
+  color:var(--text3);cursor:pointer;border-radius:20px;font-size:.72rem;
+  transition:all .2s;
+}
+.fc-fs-btn:hover{border-color:var(--neon);color:var(--text2);box-shadow:0 0 12px rgba(191,95,255,.25)}
+.fc-fs-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;flex-shrink:0}
+
+/* ── Flashcard fullscreen focus mode ── */
+#flash-panel.fc-fs{
+  position:fixed;inset:0;z-index:150;
+  background:var(--bg);
+  display:flex!important;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:24px 20px;
+}
+#flash-panel.fc-fs .fc-wrap{
+  max-width:640px;width:100%;
+}
+#flash-panel.fc-fs .fc-scene{
+  height:420px;
+}
+#flash-panel.fc-fs .fc-img{
+  max-height:300px;
+}
+#flash-panel.fc-fs .fc-greek{
+  font-size:clamp(2rem,6vw,3.2rem);
+}
+#flash-panel.fc-fs .fc-hint{
+  font-size:1rem;
+}
+/* Exit badge top-right */
+.fc-exit-fs{
+  position:fixed;top:16px;right:16px;z-index:151;
+  display:none;align-items:center;gap:5px;
+  padding:7px 16px;background:var(--glass);
+  border:1px solid var(--border);border-radius:20px;
+  color:var(--text3);font-size:.72rem;font-family:'Orbitron',sans-serif;
+  letter-spacing:.05em;cursor:pointer;transition:all .2s;
+}
+.fc-exit-fs:hover{border-color:var(--neon);color:#fff;background:rgba(124,58,237,.35)}
+#flash-panel.fc-fs ~ .fc-exit-fs,
+body.fc-fullscreen .fc-exit-fs{display:flex}
+/* ESC hint in fullscreen */
+.fc-esc-hint{
+  display:none;font-size:.65rem;color:var(--text3);
+  letter-spacing:.08em;margin-top:4px;
+}
+#flash-panel.fc-fs .fc-esc-hint{display:block}
+@media(max-width:640px){
+  #flash-panel.fc-fs .fc-scene{height:340px}
+  #flash-panel.fc-fs .fc-img{max-height:230px}
+}
 
 /* Flashcard image (front face) */
 .fc-img{
@@ -2120,11 +2175,13 @@ function filterMV(){
   `).join('');
 }
 
-// Escape: close master vocab modal OR exit vocab fullscreen
+// Escape: close master vocab → exit flash focus → exit vocab fullscreen
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     if(document.getElementById('mv-modal').classList.contains('open')){
       closeMasterVocab();
+    } else if(document.getElementById('flash-panel').classList.contains('fc-fs')){
+      toggleFlashFS();
     } else {
       const vp=document.getElementById('vocab-panel');
       if(vp.classList.contains('vocab-fs')){
@@ -2288,6 +2345,7 @@ function renderVocabGrid(vocab,q){
 // FLASHCARDS
 function renderFlash(s){
   const p=document.getElementById('flash-panel');
+  const wasFS=p.classList.contains('fc-fs');
   fcCards=[...s.vocab];
   fcIndex=0;fcFlipped=false;
   p.innerHTML=`
@@ -2313,9 +2371,30 @@ function renderFlash(s){
         <button class="fc-btn" id="fc-prev" onclick="fcMove(-1)">◀ Prev</button>
         <button class="fc-btn" id="fc-next" onclick="fcMove(1)">Next ▶</button>
       </div>
-      <button class="fc-shuffle" onclick="fcShuffle()">⇄ Shuffle</button>
+      <div class="fc-actions">
+        <button class="fc-shuffle" onclick="fcShuffle()">⇄ Shuffle</button>
+        <button class="fc-fs-btn" id="fc-fs-btn" onclick="toggleFlashFS()" title="Focus mode (fullscreen)">
+          <svg id="fc-fs-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+          </svg>
+          Focus
+        </button>
+      </div>
+      <div class="fc-esc-hint">press Esc to exit · ← → to navigate · Space to flip</div>
     </div>
   `;
+  // Inject exit button into body (outside flash-panel so it stays on top)
+  let exitBtn=document.getElementById('fc-exit-badge');
+  if(!exitBtn){
+    exitBtn=document.createElement('button');
+    exitBtn.id='fc-exit-badge';
+    exitBtn.className='fc-exit-fs';
+    exitBtn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg> Exit Focus';
+    exitBtn.onclick=toggleFlashFS;
+    document.body.appendChild(exitBtn);
+  }
+  if(wasFS) p.classList.add('fc-fs');
+  updateFlashFsBtn();
   updateCard();
 }
 
@@ -2372,6 +2451,32 @@ document.addEventListener('keydown',e=>{
     if(e.key===' '){e.preventDefault();flipCard();}
   }
 });
+
+// ─── FLASHCARD FOCUS MODE ─────────────────────────────────────────────────────
+function toggleFlashFS(){
+  const panel=document.getElementById('flash-panel');
+  const isFS=panel.classList.toggle('fc-fs');
+  const badge=document.getElementById('fc-exit-badge');
+  if(badge) badge.style.display=isFS?'flex':'none';
+  updateFlashFsBtn();
+}
+
+function updateFlashFsBtn(){
+  const panel=document.getElementById('flash-panel');
+  const btn=document.getElementById('fc-fs-btn');
+  const icon=document.getElementById('fc-fs-icon');
+  if(!btn) return;
+  const isFS=panel.classList.contains('fc-fs');
+  if(isFS){
+    icon.innerHTML='<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>';
+    btn.innerHTML=`<svg id="fc-fs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon.innerHTML}</svg> Exit Focus`;
+    btn.title='Exit focus mode';
+  } else {
+    btn.innerHTML=`<svg id="fc-fs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Focus`;
+    btn.title='Focus mode (fullscreen)';
+  }
+  btn.onclick=toggleFlashFS;
+}
 
 // ─── VOCAB FULLSCREEN ─────────────────────────────────────────────────────────
 function toggleVocabFS(){
